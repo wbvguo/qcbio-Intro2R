@@ -1,0 +1,401 @@
+---
+title: "Day2: R advanced topics"
+author: "Wenbin Guo"
+date: "2024-04-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Welcome to the QCBio workshop W3: `Introduction to R and data visualization`
+
+# Outline
+## Day2 outline
+For today's workshop practice, we will cover the following topics
+- Flow control, loop, function, packages
+- Data wrangling skills
+
+
+## Tips on Rmarkdown usage in Rstudio:
+- Ctrl/Cmd + Alt + i: insert a code chunk
+- Ctrl/Cmd + Shift + c: comment/uncomment the code
+
+For more information about the Rmarkdown usage, please refer to the following reference:
+- [cheatsheet](https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf)
+- [R markdown cookbook](https://bookdown.org/yihui/rmarkdown-cookbook/)
+- [keyboard shortcuts](https://bookdown.org/yihui/rmarkdown-cookbook/rstudio-shortcuts.html)
+
+
+# Flow control
+## if-else
+```{r}
+x = 10
+
+if(is.nan(x))
+{
+message("x is missing")
+} else if(is.infinite(x))
+{
+message("x is infinite")
+} else if(x > 0)
+{
+message("x is positive")
+} else if(x < 0)
+{
+message("x is negative")
+} else
+{
+message("x is zero")
+}
+```
+
+## switch
+```{r}
+day_of_week_if_else <- function(day) {
+  if (day == 1) {
+    result <- "Monday"
+  } else if (day == 2) {
+    result <- "Tuesday"
+  } else if (day == 3) {
+    result <- "Wednesday"
+  } else if (day == 4) {
+    result <- "Thursday"
+  } else if (day == 5) {
+    result <- "Friday"
+  } else if (day == 6) {
+    result <- "Saturday"
+  } else if (day == 7) {
+    result <- "Sunday"
+  } else {
+    result <- "Invalid day"
+  }
+  return(result)
+}
+```
+
+```{r}
+day_of_week_switch <- function(day) {
+  result <- switch(as.character(day),
+                   "1" = "Monday",
+                   "2" = "Tuesday",
+                   "3" = "Wednesday",
+                   "4" = "Thursday",
+                   "5" = "Friday",
+                   "6" = "Saturday",
+                   "7" = "Sunday",
+                   "Invalid day")
+  return(result)
+}
+```
+
+
+```{r}
+day_of_week_if_else(3)
+day_of_week_switch(3)
+```
+
+## one line if-else
+```{r}
+a = 3
+b = if(a > 0) "positive" else "non-positive"
+b
+```
+
+
+
+## vectorized if-else
+```{r}
+x = c(10, -5)
+
+## The following code is expected to have error because x is a vector
+if(x>0){
+  print("positive")
+} else {
+  print("non-positive")
+}
+```
+
+
+```{r}
+ifelse(x>0, "positive", "non-positive")
+```
+
+# loop
+## for loop
+```{r}
+for(i in 1:5){
+  j = i^2
+  print(paste0("j=", j))
+}
+```
+
+## while loop
+```{r}
+i = 1
+while(i <= 5){
+  j = i^2
+  print(paste0("j=", j))
+  i = i + 1
+}
+```
+
+
+## repeat loop
+```{r}
+i = 1
+repeat{
+  j = i^2
+  print(paste0("j=", j))
+  i = i + 1
+  if(i > 5){
+    break
+  }
+}
+
+```
+
+also, check break/next if you want to break/continue the loop
+
+
+## apply family
+```{r}
+my_list = c(list(a = 1, b = 2), list(3, 4))
+lapply(my_list, sqrt)
+```
+
+```{r}
+sapply(my_list, sqrt)
+```
+
+
+```{r}
+group = rep(1:2,each =3)
+value = c(1,2,3,4,5,6)
+tapply(value, group, sum)
+```
+
+
+```{r}
+mat = matrix(1:9, nrow = 3)
+apply(mat, 1, sum)
+```
+
+
+
+# function
+## create
+```{r}
+hypotenuse <- function(x, y)
+{
+sqrt(x ^ 2 + y ^ 2)
+}
+
+
+hypotenuse2 <- function(x = 5, y = 12)
+{
+sqrt(x ^ 2 + y ^ 2)
+}
+
+h = function(x){
+  x * y
+}
+```
+
+
+## call
+```{r}
+# the following code is expected to have error because arguments are not provided
+hypotenuse()
+```
+
+
+```{r}
+hypotenuse2()
+```
+
+```{r}
+# the following code is expected to have error because y is not provided
+h(2)
+```
+
+
+## function body
+funtion body can be retrieved by `body()` function
+```{r}
+body(h)
+```
+
+# packages
+```{r}
+# install/load package
+if(!require(tidyverse)){
+  install.packages("tidyverse")
+}
+
+library(tidyverse)
+```
+
+
+# File I/O
+## read in data
+```{r}
+# read in data, might need to adjust the path
+tcga_sample = read.table("day2/tcga_sample.csv", sep = ",", header = TRUE)
+```
+
+
+## write data
+```{r}
+saveRDS(tcga_sample, "day2/tcga_sample.rds")
+tcga_sample2= readRDS("day2/tcga_sample.rds")
+```
+
+
+
+# Data wrangling basics
+## load data mpg
+Fuel economy data from 1999 to 2008 for 38 popular models of cars. 
+```{r}
+# load mpg
+data(mpg)
+
+# check the first several lines
+head(mpg)
+```
+
+meaning of variables:
+- `cty` and `hwy` record miles per gallon (mpg) for city and highway driving.
+- `displ` is the engine displacement in liters.
+- `drv` is the drivetrain: front wheel (f), rear wheel (r) or four wheel (a).
+- `model` is the model of car. 
+- `class` is a categorical variable describing the type of car: two seater, SUV, compact, etc.
+
+
+
+## variables
+### variable types
+```{r}
+x = c(0, 1.5, -2)
+y = c("low", "medium", "high")
+```
+
+### factors
+check the results of following 2 lines about factors, what do you find?
+```{r}
+y1 = factor(y)
+y2 = factor(y, levels = c("low", "medium", "high"))
+```
+
+
+## data frame
+the `mpg` dataset is a typical example of data frame
+
+### create a new data frame
+```{r}
+df = data.frame(x = c(1,2,3), y = c("low", "medium", "high"))
+df2= data.frame(x = c(1,2,3), y0 = c("apple", "banana", "organge"))
+
+head(df)
+```
+
+## Manipulate observations
+### filter
+Filtering is useful for extracting outliers or remove abnormal data points (such as missing values). 
+
+Filtering is also a useful trick when we dealing with big datasets. By filtering, we can explore a small part of the data before we scale up to the whole dataset. This could save us time when building the prototype of processing and visualization pipeline 
+
+```{r}
+# singlecomparison operators
+filter(mpg, model == "a4")
+
+# with logical operators (compound condition)
+filter(mpg, model == "a4" & cyl==4)
+```
+
+
+### arrange
+```{r}
+# default ascending
+arrange(mpg, hwy)
+
+# descending
+arrange(mpg, desc(hwy))
+```
+
+
+### merge by rows
+use `bind_rows()` to merge 2 dataframe by rows
+```{r}
+mpg_df1 = filter(mpg, manufacturer == "audi")
+mpg_df2 = filter(mpg, manufacturer == "ford")
+
+bind_rows(mpg_df1, mpg_df2)
+```
+
+
+**Exercise**: extract observations whose `cty` value is among the top 10
+
+**Exercise**: extract observations whose manufacturer is `audi` or `ford`, filter by `cty > 18` , and then arrange the resulting data frame by `cty` in descending order
+
+**Exercise**: run `bind_rows(df,df2)`, what would you find?
+
+
+
+
+## Manipulate variables
+### select
+```{r}
+mpg_df3 = dplyr::select(mpg, manufacturer, model, year, displ)
+mpg_df4 = dplyr::select(mpg, manufacturer, model, year, hwy, cty)
+
+mpg_df3
+mpg_df4
+```
+
+
+### mutate
+```{r}
+# get a ratio of hwy, cty
+mutate(mpg_df4, ratio = hwy/cty)
+```
+
+
+### merge by columns
+**Exercise** Try to use `inner_join()`, `full_join()`, `left_join()`, `right_join()` to merge `mpg_df3` and `mpg_df4` by columns
+
+
+
+
+## Reshape data
+convert the data to long/wide format using function `pivot_longer()` and `pivot_wider()`in tidyr
+```{r}
+mpg_df4_long = pivot_longer(mpg_df4, cols = c("hwy", "cty"), names_to = "type", values_to = "mile_per_gallon")
+mpg_df4_long
+```
+
+Exercise, try to convert the `mpg_df4_long` to the wide format
+
+
+
+
+## Group & Summarize 
+group by manufacturer and year, and compute the mean of `hwy` and `cty`
+```{r}
+mpg_group = group_by(mpg, year, manufacturer)
+mpg_summary = summarise(mpg_group, hwy_mean = mean(hwy), cty_mean = mean(cty))
+mpg_summary
+```
+
+
+
+
+## Pipe
+use pipe to chain the functions together
+```{r}
+mpg %>% group_by(year, manufacturer) %>% 
+  summarise(hwy_mean = mean(hwy), cty_mean = mean(cty))
+```
+
+**Exercise** select the observation that has the smallest `cty` for each year.

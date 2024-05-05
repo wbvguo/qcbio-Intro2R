@@ -1,0 +1,259 @@
+---
+title: "Day3: R for data visualization"
+author: "Wenbin Guo"
+date: "2024-04-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Welcome to the QCBio workshop W3: `Introduction to R and data visualization`
+
+# Day3 outline
+For today's workshop practice, we will cover the following topics
+- getting started with ggplot2 
+- basic plots: scatter plot, line plot, bar plot, histogram, boxplot
+- customization a plot
+- statistical testing/modeling
+
+
+# load packages
+```{r}
+# install/load package
+if(!require(tidyverse)){
+  install.packages("tidyverse")
+}
+
+library(tidyverse)
+```
+
+
+# Recap
+## variables
+### variable types
+```{r}
+x = c(0, 1.5, -2)
+y = c("low", "medium", "high")
+```
+
+### factors
+check the results of following 2 lines about factors, what do you find?
+```{r}
+y1 = factor(y)
+y2 = factor(y, levels = c("low", "medium", "high"))
+```
+
+
+# ggplot2
+## build plot layer by layer
+```{r}
+base = ggplot(data=mpg, aes(x=hwy, y=displ))
+
+base
+
+base + 
+  geom_point(aes(colour = drv))
+
+base + 
+  geom_point(aes(colour = drv)) +   
+  geom_smooth(method = "lm") 
+
+
+base + 
+  geom_point(aes(colour = drv)) +   
+  geom_smooth(method = "lm") +   
+  theme_minimal() +   
+  ggtitle("Relationship between variables in mpg dataset", 
+          subtitle = "hwy vs displ")
+```
+
+
+## Aesthetic mapping
+```{r}
+base = ggplot(data = mpg)
+
+base + geom_point(aes(x = displ, y = hwy, color = drv))
+base + geom_point(aes(x = displ, y = hwy, size  = drv))
+base + geom_point(aes(x = displ, y = hwy, alpha = drv))
+base + geom_point(aes(x = displ, y = hwy, shape = drv))
+```
+
+
+### mapping vs setting
+```{r}
+ggplot(mpg) + geom_point(aes(displ, hwy, colour = "blue")) # mapping, will treat as a new variable, assign the default color
+ggplot(mpg) + geom_point(aes(displ, hwy), colour = "blue") # setting, will use the designed color
+```
+
+**Exercise**: build a plot that contains the following elements
+- set `hwy` as x axis, and `cty` as `y` axis
+- set point shapes and color according to `cyl`
+- set theme as `theme_bw()`
+- add title `scatter plot` and subtitle `cty.vs.hwy`
+
+> Hint: the variable types matter!
+
+
+## Geometry
+### basic types
+```{r}
+base = ggplot(data = mpg)
+
+# blank
+base + geom_blank() 
+
+# lines
+base + aes(displ, hwy) + 
+  geom_vline(xintercept = 3) + geom_hline(yintercept = 25) 
+
+base + aes(displ, hwy) + 
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "blue") 
+
+
+# line vs path 
+base + aes(displ, hwy) + 
+  geom_point() + geom_line()
+
+base + aes(displ, hwy) + 
+  geom_point() + geom_path()
+
+
+# region
+base + aes(displ, hwy) + 
+  geom_rect(xmin = 2.5, xmax=3.5, ymin = 25, ymax = 30, fill = "grey", color = "red")
+```
+
+
+### single variable
+```{r}
+base + geom_bar(aes(x = class))     # bar plot
+base + geom_histogram(aes(x = hwy)) # histogram
+base + geom_density(aes(x = hwy))   # density
+```
+
+**Exercise**: plot the barplot in ascending order (bar height increases from left to right)
+
+
+### two variables
+#### continous
+```{r}
+base + geom_point(aes(x = displ, y =hwy)) # scatter plot
+
+base + 
+  geom_point(aes(x = displ, y =hwy)) + 
+  geom_smooth(aes(x = displ, y =hwy), method = "lm") # scatter plot with regression line
+```
+
+#### dicrete 
+```{r}
+base + geom_boxplot(aes(x = drv, y = hwy))  # boxplot
+
+base + geom_violin(aes(x = drv, y = hwy))   # violin
+
+base + geom_point(aes(x = drv, y = hwy))    # treat it as scatter plot
+base + geom_jitter(aes(x = drv, y = hwy))   # jitter
+```
+
+
+### heatmap (using geom_tile)
+```{r}
+ht_data  = expand.grid(X = 1:10, Y = 1:10)
+ht_data$Value = runif(100, min = 1, max = 100)
+
+ggplot(ht_data) + 
+  geom_tile(aes(x = X, y = Y, fill = Value))
+```
+
+Note: There are more specialized packages such as `pheatmap`, `complexHeatmap`, `ggheatmap` that can be used to make fancy heatmaps
+
+
+## Scale
+**Exercise**: make the following boxplot to have color "red", "blue", "green"
+```{r}
+ggplot(mpg) +
+  geom_point(aes(x = drv, y = hwy), position = "jitter") +
+  geom_boxplot(aes(x = drv, y = hwy))
+```
+
+
+## Facet
+```{r}
+base = ggplot(data = mpg)
+
+base + geom_point(aes(displ, hwy, colour = drv)) + facet_null()
+
+base + geom_point(aes(displ, hwy, colour = drv)) + facet_wrap(~class)
+
+base + geom_point(aes(displ, hwy, colour = drv)) + facet_wrap(~class, scales = "free_x")
+
+base + geom_point(aes(displ, hwy, colour = drv)) + facet_grid(year~class, scales = "free")
+```
+
+
+## plot title, subtitle, caption and tag
+```{r}
+plot1 = base + 
+  geom_point(aes(x = displ, y = hwy, color = drv))
+
+
+plot1 + labs(title = "mytitle", 
+            subtitle = "my subtitle", 
+            caption = "this is a caption",
+            tag = "a)")
+```
+
+
+## theme
+```{r}
+# check the built in themes
+
+plot1
+plot1 + theme_bw()
+plot1 + theme_classic()
+plot1 + theme_dark()
+plot1 + theme_grey()
+plot1 + theme_light()
+plot1 + theme_linedraw()
+plot1 + theme_minimal()
+plot1 + theme_test()
+plot1 + theme_void()
+```
+
+
+## save plot
+```{r}
+ggsave("plot1.png", plot1, width = 5, height = 5, dpi = 300)
+
+pdf("plot1.pdf", width = 5, height = 5)
+print(plot1)
+dev.off()
+```
+
+
+# Statistical testing and modeling
+## t-test
+```{r}
+t.test(mpg %>% dplyr::filter(drv == "f") %>% dplyr::select(hwy), 
+       mpg %>% dplyr::filter(drv == "4") %>% dplyr::select(hwy))
+```
+
+
+## correlation
+```{r}
+cor(mpg$hwy, mpg$cty)
+cor.test(mpg$hwy, mpg$cty)
+```
+
+
+## linear model
+```{r}
+lm1 = lm(hwy ~ cty, data = mpg)
+summary(lm1)
+```
+
+
+# 2048 in R
+check the `2048.R` code and see if you can understand its logic
+
