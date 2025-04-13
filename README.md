@@ -42,5 +42,4 @@ No prior experience with R is required. Basic familiarity with programming conce
 
 <br/>
 
-<img src="./slides/qcb-logo.png" width="215" height="100">
-
+<img src="./slides/UCLA_QCBio-logo.png" width="215" height="100">
